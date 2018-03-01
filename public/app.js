@@ -4,9 +4,18 @@ $(document).ready(function(){
     .then(addTodos)
     
     $("#todoInput").keypress(function(event){
-        if(event.which == 13){
+        if( $(this).val().length !== 0 && event.which == 13){
             createTodo();
         }
+    });
+    
+    $(".list").on("click", "li", function(){
+        updateTodo($(this));
+    })
+    
+    $(".list").on("click", "span", function(e){
+        e.stopPropagation();
+        removeTodo($(this).parent());
     });
 });
 
@@ -18,14 +27,14 @@ function addTodos(todos){
 }
 
 function addTodo(todo){
-    var newTodo = $("<li>" + todo.name + "<li>");
+    var newTodo = $("<li class='task'>" +todo.name + "<span>X</span></li>");
+    newTodo.data("id", todo._id);
+    newTodo.data("completed", todo.completed);
     if(todo.completed){
        newTodo.addClass("done");
     }
-    newTodo.addClass("task");
     $(".list").append(newTodo);
 }
-    
 
 function createTodo(){
     // send request to create new todo
@@ -38,4 +47,34 @@ function createTodo(){
     .catch(function(err){
         console.log(err);
     });
+}
+
+function removeTodo(todo){
+        var clickedId = todo.data("id");
+        var deleteUrl = "/api/todos/" + clickedId;
+        $.ajax({
+            method:"DELETE",
+            url: deleteUrl
+        })
+        .then(function(data){
+            todo.remove();
+        })
+        .catch(function(err){
+            console.log(err);
+        });
+}
+
+function updateTodo(todo){
+    var updateURL = "/api/todos/" + todo.data("id");
+    var isDone = !todo.data("completed");
+    var updateData = {completed: isDone}
+    $.ajax({
+        method: "PUT",
+        url: updateURL,
+        data: updateData
+    })
+    .then(function(updatedTodo){
+        todo.toggleClass("done");
+        todo.data("completed", isDone);
+    })
 }

@@ -50,5 +50,4 @@ exports.deleteTodo = function(req, res){
    });
 };
 
-
 module.exports = exports;
